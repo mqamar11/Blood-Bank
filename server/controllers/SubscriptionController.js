@@ -4,8 +4,16 @@ const SearchOptions = require("@utils/searchOptions");
 
 exports.create = async (req, res) => {
   try {
-    const subscription = req.body;
-    const createdSubscription = await Subscription.create(subscription);
+    const { name, price, duration, trial_period, best_value, description, currency}=req.body;
+    const createdSubscription = await Subscription.create({
+      name,
+      price,
+      duration,
+      trial_period,
+      best_value,
+      description,
+      currency,
+    });
     return apiResponse(
       req,
       res,
@@ -58,9 +66,18 @@ exports.getById = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
+    const { name, price, duration, trial_period, best_value, description, currency}=req.body;
     const subscription = await Subscription.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      {
+        name,
+        price,
+        duration,
+        trial_period,
+        best_value,
+        description,
+        currency,
+      },
       { new: true }
     );
     if (!subscription)

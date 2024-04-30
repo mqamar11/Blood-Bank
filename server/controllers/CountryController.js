@@ -4,8 +4,25 @@ const SearchOptions = require("@utils/searchOptions");
 
 exports.create = async (req, res) => {
   try {
-    const country = req.body;
-    const createdCountry = await Country.create(country);
+    const {
+      name,
+      code,
+      start_tax_day,
+      end_tax_day,
+      allowed_days,
+      start_tax_month,
+      end_tax_month,
+    } = req.body;
+
+    const createdCountry = await Country.create({
+      name,
+      code,
+      start_tax_day,
+      end_tax_day,
+      allowed_days,
+      start_tax_month,
+      end_tax_month,
+    });
 
     return apiResponse(req, res, createdCountry, 201, "Created successfully.");
   } catch (err) {
@@ -36,10 +53,26 @@ exports.getAll = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const country = req.body;
+    const {
+      name,
+      code,
+      start_tax_day,
+      end_tax_day,
+      allowed_days,
+      start_tax_month,
+      end_tax_month,
+    } = req.body;
     const updatedCountry = await Country.findByIdAndUpdate(
       req.params.id,
-      country,
+      {
+        name,
+        code,
+        start_tax_day,
+        end_tax_day,
+        allowed_days,
+        start_tax_month,
+        end_tax_month,
+      },
       {
         new: true,
       }
