@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body,
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1,h3 {
+        color: #007bff;
+      }
+
+      p {
+        margin-bottom: 20px;
+      }
+
+      .otp-code {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        font-size: 18px;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h3>Account Change Status</h3>
+      <br>
+      <p>Dear <%= data.name%>,</p>
+
+      <p>Your account status is <%= data.status%> by the administrator </p>
+
+     
+      <p></p>
+      <p>
+        Best regards,<br />
+        Travel Tracker Team <br />
+      </p>
+    </div>
+  </body>
+</html>
