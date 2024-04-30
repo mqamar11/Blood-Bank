@@ -76,6 +76,10 @@ const tripsSchema = {
   images: Joi.array().items(Joi.string()),
 };
 
+const addTripImageSchema = {
+  image: Joi.string().label("Image").required(),
+};
+
 const subscriptionSchema = {
   name: Joi.string().label("name").required(),
   price: Joi.number().label("price").required(),
@@ -92,5 +96,6 @@ module.exports = {
   updateProfileSchema: Joi.object(updateProfileSchema),
   countriesSchema: Joi.object(countriesSchema),
   tripsSchema: Joi.object(tripsSchema),
+  addTripImageSchema: Joi.object(addTripImageSchema),
   subscriptionSchema: Joi.object(subscriptionSchema),
 };

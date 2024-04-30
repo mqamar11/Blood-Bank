@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { loginRequired, adminRequired, validate } = require("@base/middleware");
-const { tripsSchema } = require("@base/validation");
+const { tripsSchema, addTripImageSchema } = require("@base/validation");
 const controller = require("@controllers/TripController");
 
 router
@@ -14,6 +14,10 @@ router
   .get(loginRequired, controller.getById)
   .put(loginRequired, validate(tripsSchema), controller.update)
   .delete(loginRequired, controller.delete);
+
+router
+  .route("/trips/uploadImage/:id")
+  .patch(loginRequired, validate(addTripImageSchema), controller.addImage);
 
 // ADMIN ROUTES
 

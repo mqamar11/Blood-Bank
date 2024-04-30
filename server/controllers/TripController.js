@@ -82,3 +82,21 @@ exports.getAll = async (req, res) => {
     return apiResponse(req, res, {}, 500, err.message);
   }
 };
+
+exports.addImage = async (req, res) => {
+  try {
+    const record = await Trips.findByIdAndUpdate(
+      req.params.id,
+      {
+        $push: {
+          images: req.body.image,
+        },
+      },
+      { new: true }
+    );
+    if (!record) return apiResponse(req, res, {}, 404, "No record found");
+    return apiResponse(req, res, {}, 200, "Uploaded successfully");
+  } catch (err) {
+    return apiResponse(req, res, {}, 500, err.message);
+  }
+};
