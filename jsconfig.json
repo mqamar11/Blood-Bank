@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "allowSyntheticDefaultImports": false,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["*"],
+      "@base/*": ["server/*"],
+      "@config/*": ["server/config/*"],
+      "@controllers/*": ["server/controllers/*"],
+      "@helpers/*": ["server/helpers/*"],
+      "@models/*": ["server/models/*"],
+      "@services/*": ["server/services/*"],
+      "@utils/*": ["server/utils/*"],
+      "@constants/*": ["server/constants/*"],
+      "@routes/*": ["server/routes/*"]
+    }
+  },
+  "exclude": ["node_modules", "**/node_modules/*"]
+}
