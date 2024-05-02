@@ -60,22 +60,13 @@ exports.getById = async (req, res) => {
   }
 };
 
-
-
 exports.getAll = async (req, res) => {
   try {
+    const { entry_date, exit_date } = req.query;
     let query = {};
     if (!is_admin(req.user)) query.user = req.user._id;
-
-
-    if (req.query.entry_date && req.query.exit_date) {
-      query.entryDate = {
-        $gte: new Date(req.query.entry_date), 
-      };
-      query.exitDate = {
-        $lte: new Date(req.query.exit_date)    
-      };
-    }
+    if (entry_date) query.entryDate = { $gte: entry_date };
+    if (exit_date) query.exitDate = { $lte: exit_date };
 
     const total = await Trips.countDocuments(query);
     const records =
@@ -94,8 +85,6 @@ exports.getAll = async (req, res) => {
     return apiResponse(req, res, {}, 500, err.message);
   }
 };
-
-
 
 exports.addImage = async (req, res) => {
   try {
