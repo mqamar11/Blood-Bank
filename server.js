@@ -1,3 +1,4 @@
+require("dotenv").config();
 require("module-alias/register");
 const express = require("express");
 require("express-async-errors");
