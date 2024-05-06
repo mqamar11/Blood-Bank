@@ -12,6 +12,7 @@ exports.create = async (req, res) => {
       best_value,
       description,
       currency,
+      status,
     } = req.body;
     const createdSubscription = await Subscription.create({
       name,
@@ -21,6 +22,7 @@ exports.create = async (req, res) => {
       best_value,
       description,
       currency,
+      status,
     });
     return apiResponse(
       req,
@@ -82,6 +84,7 @@ exports.update = async (req, res) => {
       best_value,
       description,
       currency,
+      status,
     } = req.body;
     const subscription = await Subscription.findByIdAndUpdate(
       req.params.id,
@@ -93,6 +96,7 @@ exports.update = async (req, res) => {
         best_value,
         description,
         currency,
+        status,
       },
       { new: true }
     );
