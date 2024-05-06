@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const config = require("@config");
+const { profile } = require("./config/index");
 
 const { passwordPolicy } = config;
 
@@ -87,6 +88,11 @@ const subscriptionSchema = {
   trial_period: Joi.string().label("trial_period").required(),
 };
 
+const updatePasswordSchema = {
+  password: Joi.string().label("password").required(),
+  new_password: Joi.string().label("new_password").required(),
+};
+
 module.exports = {
   validate,
   registerSchema: Joi.object(registerSchema),
@@ -98,4 +104,5 @@ module.exports = {
   tripsSchema: Joi.object(tripsSchema),
   addTripImageSchema: Joi.object(addTripImageSchema),
   subscriptionSchema: Joi.object(subscriptionSchema),
+  updatePasswordSchema: Joi.object(updatePasswordSchema),
 };

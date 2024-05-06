@@ -182,3 +182,28 @@ exports.toggleAccountStatus = async (req, res) => {
     return apiResponse(req, res, {}, 500, error.message);
   }
 };
+
+
+exports.updatePassword = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const{ new_password, password} = req.body;
+    
+    const user = await User.findById(id).select("+password");
+    if (!user) {
+      return apiResponse(req, res, {}, 404, "User not found");
+    }
+
+    const isPasswordMatched = await user.comparePassword(password);
+    if (!isPasswordMatched) {
+      return apiResponse(req, res, {}, 401, "Invalid password");
+    }
+
+    user.password = new_password;
+    await user.save();
+
+    return apiResponse(req, res, {}, 200, "Password updated successfully");
+  } catch (error) {
+    return apiResponse(req, res, {}, 500, error.message);
+  }
+};

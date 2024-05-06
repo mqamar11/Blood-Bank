@@ -44,7 +44,12 @@ const userSchema = new mongoose.Schema(
       // required: [true, "Please enter your country"],
       autopopulate: { select: "name" },
     },
-    // profile_picture: String,
+     profile_picture:{
+      type: String,
+      default: '',
+
+     },
+    
     role: {
       type: String,
       enum: [USER_ROLES],

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { loginRequired, adminRequired, validate } = require("@base/middleware");
-const { updateProfileSchema } = require("@base/validation");
+const { updateProfileSchema, updatePasswordSchema } = require("@base/validation");
 const controller = require("@controllers/UserController");
 
 router
@@ -12,6 +12,10 @@ router
 router
   .route("/users/me/profilePicture")
   .delete(loginRequired, controller.deleteProfilePicture);
+
+router
+.route("/user/me/updatePassword")
+.patch(loginRequired, validate(updatePasswordSchema), controller.updatePassword);
 
 // ADMIN ROUTES
 
