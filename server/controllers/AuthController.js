@@ -1,9 +1,9 @@
-const sendEmail = require("@utils/sendEmail");
+const sendEmail = require("@services/mail");
 const {
   apiResponse,
   getSixDigitCode,
   // uploadFile,
-} = require("@helpers/helpers");
+} = require("@utils");
 const User = require("@models/user");
 // const { validateImage } = require("@utils");
 // const config = require("@config");

@@ -1,10 +1,10 @@
-const { apiResponse } = require("@helpers/helpers");
+const { apiResponse } = require("@utils");
 const config = require("@config");
 const authRoutes = require("./authRoutes");
 const userRoutes = require("./userRoutes");
 const countryRoutes = require("./countryRoutes");
 const tripRoutes = require("./tripRoutes");
-const subscriptionRoutes=require('./subscriptionRoutes');
+const subscriptionRoutes = require("./subscriptionRoutes");
 
 module.exports = (app) => {
   app.use(`/${config.apiPrefix}`, authRoutes);

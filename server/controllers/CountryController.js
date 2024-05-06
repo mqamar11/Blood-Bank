@@ -1,4 +1,4 @@
-const { apiResponse } = require("@helpers/helpers");
+const { apiResponse } = require("@utils");
 const Country = require("@models/country");
 const SearchOptions = require("@utils/searchOptions");
 
@@ -38,7 +38,6 @@ exports.getAll = async (req, res) => {
       total > 0
         ? await Country.find(query, null, new SearchOptions(req.query))
         : [];
-        
 
     return apiResponse(
       req,
@@ -47,7 +46,7 @@ exports.getAll = async (req, res) => {
       201,
       "Records retrieved Successfully."
     );
-  } catch (err) { 
+  } catch (err) {
     return apiResponse(req, res, {}, 500, err.message);
   }
 };

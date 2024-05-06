@@ -3,9 +3,9 @@ const {
   requestFilled,
   createHash,
   // uploadFile,
-} = require("@helpers/helpers");
+} = require("@utils");
 const User = require("@models/user");
-const sendEmail = require("@utils/sendEmail");
+const sendEmail = require("@services/mail");
 // const { validateImage } = require("@utils");
 const { USER_ROLES } = require("@constants");
 const SearchOptions = require("@utils/searchOptions");
@@ -183,12 +183,11 @@ exports.toggleAccountStatus = async (req, res) => {
   }
 };
 
-
 exports.updatePassword = async (req, res) => {
   try {
     const { id } = req.user;
-    const{ new_password, password} = req.body;
-    
+    const { new_password, password } = req.body;
+
     const user = await User.findById(id).select("+password");
     if (!user) {
       return apiResponse(req, res, {}, 404, "User not found");

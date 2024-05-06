@@ -1,4 +1,4 @@
-const { apiResponse } = require("@helpers/helpers");
+const { apiResponse } = require("@utils");
 const Trips = require("@models/trips");
 const SearchOptions = require("@utils/searchOptions");
 const { is_admin } = require("@helpers/users");

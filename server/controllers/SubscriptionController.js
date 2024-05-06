@@ -1,10 +1,18 @@
-const { apiResponse } = require("@helpers/helpers");
+const { apiResponse } = require("@utils");
 const Subscription = require("@models/subscription");
 const SearchOptions = require("@utils/searchOptions");
 
 exports.create = async (req, res) => {
   try {
-    const { name, price, duration, trial_period, best_value, description, currency}=req.body;
+    const {
+      name,
+      price,
+      duration,
+      trial_period,
+      best_value,
+      description,
+      currency,
+    } = req.body;
     const createdSubscription = await Subscription.create({
       name,
       price,
@@ -66,7 +74,15 @@ exports.getById = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { name, price, duration, trial_period, best_value, description, currency}=req.body;
+    const {
+      name,
+      price,
+      duration,
+      trial_period,
+      best_value,
+      description,
+      currency,
+    } = req.body;
     const subscription = await Subscription.findByIdAndUpdate(
       req.params.id,
       {
