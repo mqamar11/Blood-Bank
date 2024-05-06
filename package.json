@@ -37,6 +37,7 @@
     "validator": "^13.11.0",
     "winston": "^3.8.2",
     "winston-daily-rotate-file": "^4.7.1"
+    
   },
   "_moduleAliases": {
     "@base": "server",
