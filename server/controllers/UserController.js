@@ -9,6 +9,11 @@ const sendEmail = require("@services/mail");
 // const { validateImage } = require("@utils");
 const { USER_ROLES } = require("@constants");
 const SearchOptions = require("@utils/searchOptions");
+const {
+  updatePaymentUser,
+  getOrCreatePaymentUser,
+  addCustomerPaymentMethod,
+} = require("@services/stripe");
 // const config = require("@config");
 
 exports.updateProfile = async (req, res) => {
@@ -60,7 +65,12 @@ exports.updateProfile = async (req, res) => {
         runValidators: true,
         useFindAndModify: false,
       }
-    ).select("-password");
+    )
+      .select("+paymentSource")
+      .lean();
+
+    await updatePaymentUser(updated_user);
+    delete updated_user.paymentSource;
 
     return apiResponse(
       req,
@@ -104,9 +114,8 @@ exports.deleteProfilePicture = async (req, res) => {
 
 exports.getUserProfile = async (req, res) => {
   try {
-    const { id } = req.user;
-    const user = await User.findById(id).select("-password").lean();
-    if (!user) return apiResponse(req, res, {}, 404, "User not found");
+    const user = req.user.toJSON();
+    delete user.paymentSource;
 
     // user.profile_pic_url = user.profile_picture
     //   ? `${config.profile.basePath}${user.profile_picture}`
@@ -114,6 +123,18 @@ exports.getUserProfile = async (req, res) => {
     // delete user.profile_picture;
 
     return apiResponse(req, res, user, 200, "User profile details");
+  } catch (err) {
+    return apiResponse(req, res, {}, 500, err.message);
+  }
+};
+
+exports.attachPaymentMethod = async (req, res) => {
+  try {
+    const { source } = req.body;
+    const paymentSource = await getOrCreatePaymentUser(req.user);
+    await addCustomerPaymentMethod(paymentSource.id, source);
+
+    return apiResponse(req, res, {}, 200, "Attached Successfully");
   } catch (err) {
     return apiResponse(req, res, {}, 500, err.message);
   }

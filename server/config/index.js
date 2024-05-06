@@ -55,6 +55,10 @@ const config = {
     secret: process.env.JWT_SECRET,
     expiryTime: process.env.JWT_EXPIRES_TIME,
   },
+  stripe: {
+    apiKey: process.env.STRIPE_API_KEY,
+    endPointSecret: process.env.STRIPE_END_POINT_SECRET,
+  },
 };
 
 module.exports = config;

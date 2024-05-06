@@ -93,6 +93,10 @@ const updatePasswordSchema = {
   new_password: Joi.string().label("new_password").required(),
 };
 
+const attachPaymentMethodSchema = {
+  source: Joi.string().label("source").required(),
+};
+
 module.exports = {
   validate,
   registerSchema: Joi.object(registerSchema),
@@ -105,4 +109,5 @@ module.exports = {
   addTripImageSchema: Joi.object(addTripImageSchema),
   subscriptionSchema: Joi.object(subscriptionSchema),
   updatePasswordSchema: Joi.object(updatePasswordSchema),
+  attachPaymentMethodSchema: Joi.object(attachPaymentMethodSchema),
 };

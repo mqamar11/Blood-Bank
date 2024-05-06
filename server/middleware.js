@@ -30,7 +30,7 @@ exports.userTokenMiddleware = async (req, res, next) => {
       // get user and update in request
       let decoded = jwtToken.verifyJwtToken(token, config.jwt.secret);
       decoded = JSON.parse(JSON.stringify(decoded));
-      req.user = await User.findById(decoded.id);
+      req.user = await User.findById(decoded.id).select("+paymentSource");
     } else return next(null);
   } catch (error) {
     logger.error(

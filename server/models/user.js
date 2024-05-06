@@ -44,12 +44,10 @@ const userSchema = new mongoose.Schema(
       // required: [true, "Please enter your country"],
       autopopulate: { select: "name" },
     },
-     profile_picture:{
+    profile_picture: {
       type: String,
-      default: '',
-
-     },
-    
+      default: "",
+    },
     role: {
       type: String,
       enum: [USER_ROLES],
@@ -58,6 +56,11 @@ const userSchema = new mongoose.Schema(
     status: {
       type: Boolean,
       default: true,
+    },
+    paymentSource: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+      select: false,
     },
   },
   {

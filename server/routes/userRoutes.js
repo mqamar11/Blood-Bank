@@ -4,6 +4,7 @@ const { loginRequired, adminRequired, validate } = require("@base/middleware");
 const {
   updateProfileSchema,
   updatePasswordSchema,
+  attachPaymentMethodSchema,
 } = require("@base/validation");
 const controller = require("@controllers/UserController");
 
@@ -22,6 +23,14 @@ router
     loginRequired,
     validate(updatePasswordSchema),
     controller.updatePassword
+  );
+
+router
+  .route("/users/me/attachPaymentMethod")
+  .post(
+    loginRequired,
+    validate(attachPaymentMethodSchema),
+    controller.attachPaymentMethod
   );
 
 // ADMIN ROUTES

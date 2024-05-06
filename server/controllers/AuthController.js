@@ -5,6 +5,7 @@ const {
   // uploadFile,
 } = require("@utils");
 const User = require("@models/user");
+const { getOrCreatePaymentUser } = require("@services/stripe");
 // const { validateImage } = require("@utils");
 // const config = require("@config");
 
@@ -27,13 +28,15 @@ exports.register = async (req, res) => {
     //   );
     // }
 
-    await User.create({
+    const record = await User.create({
       name,
       email,
       password,
       phone,
       // profile_picture: uploaded_file,
     });
+
+    await getOrCreatePaymentUser(record);
 
     return apiResponse(req, res, {}, 200, "User registered successfully.");
   } catch (err) {
