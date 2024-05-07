@@ -85,7 +85,10 @@ const subscriptionSchema = {
   name: Joi.string().label("name").required(),
   price: Joi.number().label("price").required(),
   duration: Joi.string().label("duration").required(),
-  trial_period: Joi.string().label("trial_period").required(),
+  trial_period: Joi.number().label("trial_period").required(),
+  best_value: Joi.boolean().label("best_value").optional(),
+  description: Joi.string().label("description").optional(),
+  status: Joi.boolean().label("status").optional(),
 };
 
 const updatePasswordSchema = {

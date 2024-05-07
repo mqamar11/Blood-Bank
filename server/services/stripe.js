@@ -2,6 +2,8 @@ const config = require("@config");
 const stripe = require("stripe")(config.stripe.apiKey);
 
 const User = require("@models/user");
+const Subscription = require("@models/subscription");
+const { getPlanObj } = require("@helpers/stripe");
 
 // payment user services
 const getPaymentUser = async (customerId) => {
@@ -67,6 +69,119 @@ const getCustomerPaymentMethods = async (customerId) => {
   });
 };
 
+// Products services
+const createProduct = async (product) => {
+  return await stripe.products.create(product);
+};
+const updateProduct = async (productId, product) => {
+  return await stripe.products.update(productId, product);
+};
+const archiveProduct = async (productId) => {
+  return await stripe.products.update(productId, {
+    active: false,
+  });
+};
+
+// Price services
+const getProductPrice = async (priceId) => {
+  return await stripe.prices.retrieve(priceId);
+};
+const createProductPrice = async (price) => {
+  return await stripe.prices.create(price);
+};
+const updateProductPrice = async (priceId, price) => {
+  return await stripe.prices.update(priceId, {
+    active: price.active,
+    nickname: price.nickname,
+  });
+};
+const archiveProductPrice = async (priceId) => {
+  return await stripe.prices.update(priceId, {
+    active: false,
+  });
+};
+const getProductActivePrices = async (product, limit = 100) => {
+  return await stripe.prices.list({ active: true, product, limit });
+};
+
+// Plans services
+const createPlan = async (payload) => {
+  const plan = getPlanObj(payload);
+
+  // create product
+  const stripeProduct = await createProduct(plan.product);
+
+  // create price
+  plan.price.product = stripeProduct.id;
+  const stripePrice = await createProductPrice(plan.price);
+
+  const sourceData = {
+    productId: stripeProduct.id,
+    priceId: stripePrice.id,
+  };
+
+  await Subscription.findByIdAndUpdate(payload._id, { sourceData });
+  return sourceData;
+};
+const updatePlan = async (payload) => {
+  try {
+    const plan = getPlanObj(payload);
+
+    // update product
+    const stripeProduct = await updateProduct(
+      payload.sourceData.productId,
+      plan.product
+    );
+
+    // update price
+    let stripePrice = await getProductPrice(payload.sourceData.priceId);
+
+    if (
+      stripePrice.unit_amount != plan.price.unit_amount ||
+      stripePrice.recurring.interval != plan.price.recurring.interval
+    ) {
+      if (stripePrice.active)
+        await archiveProductPrice(payload.sourceData.priceId);
+      plan.price.product = payload.sourceData.productId;
+      stripePrice = await createProductPrice(plan.price);
+    } else if (
+      stripePrice.active != plan.price.active ||
+      stripePrice.nickname != plan.price.nickname
+    ) {
+      stripePrice = await updateProductPrice(
+        payload.sourceData.priceId,
+        plan.price
+      );
+    }
+
+    const sourceData = {
+      productId: stripeProduct.id,
+      priceId: stripePrice.id,
+    };
+
+    if (payload.sourceData.priceId !== sourceData.priceId)
+      await Subscription.findByIdAndUpdate(payload._id, { sourceData });
+
+    return sourceData;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+const removePlan = async (sourceData) => {
+  try {
+    // Archive all prices
+    const stripePrices = await getProductActivePrices(sourceData.productId);
+    for (const price of stripePrices.data) {
+      await archiveProductPrice(price.id);
+    }
+
+    // Archive product
+    await archiveProduct(sourceData.productId);
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
 module.exports = {
   getPaymentUser,
   getOrCreatePaymentUser,
@@ -75,4 +190,8 @@ module.exports = {
   detachPaymentMethod,
   addCustomerPaymentMethod,
   getCustomerPaymentMethods,
+
+  createPlan,
+  updatePlan,
+  removePlan,
 };

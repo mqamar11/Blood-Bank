@@ -1,6 +1,8 @@
 const { apiResponse } = require("@utils");
 const Subscription = require("@models/subscription");
 const SearchOptions = require("@utils/searchOptions");
+const { DEFAULT_CURRENCY } = require("@constants/stripe");
+const { createPlan, updatePlan, removePlan } = require("@services/stripe");
 
 exports.create = async (req, res) => {
   try {
@@ -11,23 +13,26 @@ exports.create = async (req, res) => {
       trial_period,
       best_value,
       description,
-      currency,
       status,
     } = req.body;
-    const createdSubscription = await Subscription.create({
+
+    const record = await Subscription.create({
       name,
       price,
       duration,
       trial_period,
       best_value,
       description,
-      currency,
+      currency: DEFAULT_CURRENCY,
       status,
     });
+
+    await createPlan(record);
+
     return apiResponse(
       req,
       res,
-      createdSubscription,
+      record,
       201,
       "Subscription created successfully."
     );
@@ -83,10 +88,10 @@ exports.update = async (req, res) => {
       trial_period,
       best_value,
       description,
-      currency,
       status,
     } = req.body;
-    const subscription = await Subscription.findByIdAndUpdate(
+
+    const record = await Subscription.findByIdAndUpdate(
       req.params.id,
       {
         name,
@@ -95,17 +100,23 @@ exports.update = async (req, res) => {
         trial_period,
         best_value,
         description,
-        currency,
         status,
       },
       { new: true }
-    );
-    if (!subscription)
+    ).select("+sourceData");
+
+    if (!record)
       return apiResponse(req, res, {}, 404, "Subscription not found");
+
+    if (record.sourceData) {
+      await updatePlan(record);
+      record.sourceData = undefined;
+    } else await createPlan(record);
+
     return apiResponse(
       req,
       res,
-      subscription,
+      record,
       200,
       "Subscription updated successfully"
     );
@@ -116,9 +127,16 @@ exports.update = async (req, res) => {
 
 exports.delete = async (req, res) => {
   try {
-    const subscription = await Subscription.findByIdAndDelete(req.params.id);
-    if (!subscription)
+    const record = await Subscription.findById(req.params.id).select(
+      "+sourceData"
+    );
+
+    if (!record)
       return apiResponse(req, res, {}, 404, "Subscription not found");
+
+    if (record.sourceData) await removePlan(record.sourceData);
+    await Subscription.findByIdAndDelete(req.params.id);
+
     return apiResponse(req, res, {}, 200, "Subscription deleted successfully");
   } catch (err) {
     return apiResponse(req, res, {}, 500, err.message);

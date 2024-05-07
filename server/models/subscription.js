@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { DURATION } = require("@constants");
+const { DURATION } = require("@constants/stripe");
 
 const subscriptionSchema = new mongoose.Schema(
   {
@@ -28,12 +28,17 @@ const subscriptionSchema = new mongoose.Schema(
       required: true,
     },
     trial_period: {
-      type: String,
+      type: Number,
       required: true,
     },
     best_value: {
       type: Boolean,
       default: false,
+    },
+    sourceData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+      select: false,
     },
   },
   {
