@@ -63,8 +63,9 @@ exports.getById = async (req, res) => {
 
 exports.getAll = async (req, res) => {
   try {
-    const { entry_date, exit_date } = req.query;
+    const { entry_date, exit_date, country } = req.query;
     const query = {};
+    if (country) query.country = country;
     if (!is_admin(req.user)) query.user = req.user._id;
     if (entry_date) query.entryDate = { $gte: entry_date };
     if (exit_date) query.exitDate = { $lte: exit_date };
@@ -142,5 +143,3 @@ exports.getTripsByCountries = async (req, res) => {
     return apiResponse(req, res, {}, 500, err.message);
   }
 };
-
-
