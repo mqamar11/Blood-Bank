@@ -112,6 +112,10 @@ const uploadFile = async (
   });
 };
 
+const appendZero = (value) => {
+  return value < 10 ? `0${value}` : value;
+};
+
 module.exports = {
   validateImage,
   apiResponse,
@@ -119,4 +123,5 @@ module.exports = {
   createHash,
   requestFilled,
   uploadFile,
+  appendZero,
 };

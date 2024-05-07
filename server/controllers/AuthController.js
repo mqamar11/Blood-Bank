@@ -106,7 +106,7 @@ exports.forgetPassword = async (req, res) => {
       ) {
         return apiResponse(req, res, {}, 451, result.response);
       } else {
-        return apiResponse(req, res, {}, 200, `Email sent to: ${email}`);
+        return apiResponse(req, res, {otp_code}, 200, `Email sent to: ${email}` );
       }
     } else {
       return apiResponse(req, res, {}, 500, "Something went wrong");

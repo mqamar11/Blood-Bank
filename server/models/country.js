@@ -8,24 +8,28 @@ const countrySchema = new mongoose.Schema(
     },
     code: String,
     start_tax_day: {
-      type: String,
+      type: Number,
       required: true,
     },
     start_tax_month: {
-      type: String,
+      type: Number,
       required: true,
     },
     end_tax_day: {
-      type: String,
+      type: Number,
       required: true,
     },
     end_tax_month: {
-      type: String,
+      type: Number,
       required: true,
     },
     allowed_days: {
       type: Number,
       required: true,
+    },
+    status: {
+      type: Boolean,
+      default: true,
     },
   },
   {
