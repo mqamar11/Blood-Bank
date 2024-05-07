@@ -10,6 +10,10 @@ router
   .post(loginRequired, validate(tripsSchema), controller.create);
 
 router
+  .route("/trips/byCountries")
+  .get(loginRequired, controller.getTripsByCountries);
+
+router
   .route("/trips/:id")
   .get(loginRequired, controller.getById)
   .put(loginRequired, validate(tripsSchema), controller.update)

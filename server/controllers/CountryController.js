@@ -1,6 +1,7 @@
 const { apiResponse } = require("@utils");
 const Country = require("@models/country");
 const SearchOptions = require("@utils/searchOptions");
+const { is_admin } = require("@helpers/users");
 
 exports.create = async (req, res) => {
   try {
@@ -12,6 +13,7 @@ exports.create = async (req, res) => {
       allowed_days,
       start_tax_month,
       end_tax_month,
+      status,
     } = req.body;
 
     const createdCountry = await Country.create({
@@ -22,6 +24,7 @@ exports.create = async (req, res) => {
       allowed_days,
       start_tax_month,
       end_tax_month,
+      status,
     });
 
     return apiResponse(req, res, createdCountry, 201, "Created successfully.");
@@ -33,6 +36,8 @@ exports.create = async (req, res) => {
 exports.getAll = async (req, res) => {
   try {
     const query = { name: { $regex: new RegExp(req.query.search ?? "", "i") } };
+    if (!req.user || !is_admin(req.user)) query.status = true;
+
     const total = await Country.countDocuments(query);
     const records =
       total > 0
@@ -61,6 +66,7 @@ exports.update = async (req, res) => {
       allowed_days,
       start_tax_month,
       end_tax_month,
+      status,
     } = req.body;
     const updatedCountry = await Country.findByIdAndUpdate(
       req.params.id,
@@ -72,6 +78,7 @@ exports.update = async (req, res) => {
         allowed_days,
         start_tax_month,
         end_tax_month,
+        status,
       },
       {
         new: true,

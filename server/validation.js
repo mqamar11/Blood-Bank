@@ -63,11 +63,12 @@ const updateProfileSchema = {
 const countriesSchema = {
   name: Joi.string().label("Name").required(),
   code: Joi.string().label("Code"),
-  start_tax_day: Joi.string().label("start_tax_day").required(),
-  end_tax_day: Joi.string().label("end_tax_day").required(),
-  start_tax_month: Joi.string().label("start_tax_month").required(),
-  end_tax_month: Joi.string().label("end_tax_month").required(),
+  start_tax_day: Joi.number().label("start_tax_day").required(),
+  end_tax_day: Joi.number().label("end_tax_day").required(),
+  start_tax_month: Joi.number().label("start_tax_month").required(),
+  end_tax_month: Joi.number().label("end_tax_month").required(),
   allowed_days: Joi.number().label("allowed_days").required(),
+  status: Joi.boolean().label("status").required(),
 };
 
 const tripsSchema = {
