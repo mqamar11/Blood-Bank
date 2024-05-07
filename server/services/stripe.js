@@ -182,6 +182,20 @@ const removePlan = async (sourceData) => {
   }
 };
 
+// Subscriptions
+const createSubscription = async (payload, paymentUser) => {
+  try {
+    return stripe.subscriptions.create({
+      customer: paymentUser.id,
+      items: [{ price: payload.sourceData.priceId }],
+      trial_period_days: payload.trial_period ?? 0,
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+const updateSubscription = async () => {};
+
 module.exports = {
   getPaymentUser,
   getOrCreatePaymentUser,
@@ -194,4 +208,7 @@ module.exports = {
   createPlan,
   updatePlan,
   removePlan,
+
+  createSubscription,
+  updateSubscription,
 };

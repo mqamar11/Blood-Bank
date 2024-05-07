@@ -2,7 +2,15 @@ const { apiResponse } = require("@utils");
 const Subscription = require("@models/subscription");
 const SearchOptions = require("@utils/searchOptions");
 const { DEFAULT_CURRENCY } = require("@constants/stripe");
-const { createPlan, updatePlan, removePlan } = require("@services/stripe");
+const {
+  getOrCreatePaymentUser,
+  createPlan,
+  updatePlan,
+  removePlan,
+  createSubscription,
+  updateSubscription,
+} = require("@services/stripe");
+const { getUserCurrentSubscription } = require("@helpers/subscriptions");
 
 exports.create = async (req, res) => {
   try {
@@ -138,6 +146,37 @@ exports.delete = async (req, res) => {
     await Subscription.findByIdAndDelete(req.params.id);
 
     return apiResponse(req, res, {}, 200, "Subscription deleted successfully");
+  } catch (err) {
+    return apiResponse(req, res, {}, 500, err.message);
+  }
+};
+
+exports.purchase = async (req, res) => {
+  try {
+    // validate subscription
+    const record = await Subscription.findById(req.params.id)
+      .select("+sourceData")
+      .lean();
+    if (!record || !record.sourceData)
+      return apiResponse(req, res, {}, 404, "Subscription not found");
+
+    // validate payment user
+    const payer = await getOrCreatePaymentUser(req.user);
+    if (
+      payer.default_source == null &&
+      payer.invoice_settings.default_payment_method == null
+    ) {
+      return apiResponse(req, res, {}, 500, "No payment method found.");
+    }
+
+    const prev = await getUserCurrentSubscription(req.user._id);
+    if (prev) {
+      if (prev.subscription == record.id)
+        return apiResponse(req, res, {}, 500, "Already subscribed.");
+      await updateSubscription();
+    } else await createSubscription(record, req.user.paymentSource);
+
+    return apiResponse(req, res, {}, 200, "Purchased successfully");
   } catch (err) {
     return apiResponse(req, res, {}, 500, err.message);
   }

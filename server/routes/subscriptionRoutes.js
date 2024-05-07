@@ -1,8 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { adminRequired, validate } = require("@base/middleware");
+const { adminRequired, loginRequired, validate } = require("@base/middleware");
 const { subscriptionSchema } = require("@base/validation");
 const controller = require("@controllers/SubscriptionController");
+
+router
+  .route("/subscriptions/purchase/:id")
+  .post(loginRequired, controller.purchase);
+
+// ADMIN ROUTES
 
 router
   .route("/admin/subscriptions")

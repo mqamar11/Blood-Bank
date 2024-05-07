@@ -27,3 +27,14 @@ exports.RECURRING_INTERVALS = {
     interval_count: 1,
   },
 };
+
+exports.SUBSCRIPTION_STATUS = {
+  incomplete: "incomplete",
+  incomplete_expired: "incomplete_expired",
+  trialing: "trialing",
+  active: "active",
+  past_due: "past_due",
+  canceled: "canceled",
+  unpaid: "unpaid",
+  paused: "paused",
+};
