@@ -220,6 +220,24 @@ const cancelSubscription = async (
       })
     : await stripe.subscriptions.cancel(subscription.id);
 };
+const pauseSubscription = async (subscriptionId, resumeDate = null) => {
+  let pause_collection = { behavior: "mark_uncollectible" };
+  if (resumeDate) {
+    pause_collection = {
+      ...pause_collection,
+      resumes_at: new Date(resumeDate),
+    };
+  }
+  return await stripe.subscriptions.update(subscriptionId, {
+    pause_collection,
+  });
+};
+const resumeSubscription = async (subscriptionId) => {
+  return await stripe.subscriptions.update(subscriptionId, {
+    pause_collection: "",
+    cancel_at_period_end: false,
+  });
+};
 const createSubscription = async (payload, paymentUser) => {
   try {
     const trial = paymentUser.trialAvailed ? 0 : payload.trial_period ?? 0;
@@ -249,12 +267,17 @@ const createSubscription = async (payload, paymentUser) => {
     throw new Error(error);
   }
 };
+
 const updateSubscription = async (payload, paymentUser, prevSubscription) => {
+  // ** Paused subscription updating flows not handled yet ** //
   try {
-    const prev = await retrieveSubscription(prevSubscription.sourceData.id);
+    let prev = await retrieveSubscription(prevSubscription.sourceData.id);
 
     // remove previous schedule
     if (prev.schedule) await releaseSchedule(prev.schedule);
+
+    // if previous subscription is in cancel_at_period_end state then resume before schedule
+    if (prev.cancel_at_period_end) prev = await resumeSubscription(prev.id);
 
     // create new schedule
     const schedules = await createSchedule(prev.id);
@@ -276,6 +299,8 @@ const updateSubscription = async (payload, paymentUser, prevSubscription) => {
     }
 
     const prevPhases = [...getPreviousPhases(schedules.phases)];
+
+    // if Previous subscription is in trial mode then directly move to next plan after trial end.
     if (prev.status === SUBSCRIPTION_STATUS.trialing && prevPhases.length > 1)
       prevPhases.pop();
 
