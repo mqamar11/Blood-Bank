@@ -108,7 +108,9 @@ exports.addImage = async (req, res) => {
 
 exports.getTripsByCountries = async (req, res) => {
   try {
-    const records = await Country.find({ status: true }).lean();
+    const records = await Country.find({
+      status: { $in: [true, null] },
+    }).lean();
     const currentYear = new Date().getFullYear();
     for (const country of records) {
       const startDay = appendZero(country.start_tax_day);

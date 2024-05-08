@@ -206,9 +206,11 @@ const retrieveSubscription = async (subscriptionId) => {
   return await stripe.subscriptions.retrieve(subscriptionId);
 };
 const cancelSubscription = async (
-  subscription,
+  subscriptionId,
   cancel_at_period_end = true
 ) => {
+  const subscription = await retrieveSubscription(subscriptionId);
+
   // remove previous schedule
   if (subscription.schedule) await releaseSchedule(subscription.schedule);
 
@@ -216,7 +218,7 @@ const cancelSubscription = async (
     ? await stripe.subscriptions.update(subscription.id, {
         cancel_at_period_end,
       })
-    : await stripe.subscriptions.del(subscription.id);
+    : await stripe.subscriptions.cancel(subscription.id);
 };
 const createSubscription = async (payload, paymentUser) => {
   try {
@@ -229,7 +231,7 @@ const createSubscription = async (payload, paymentUser) => {
 
     // First payment error
     if (sourceData.status === SUBSCRIPTION_STATUS.incomplete) {
-      await cancelSubscription(sourceData, false);
+      await cancelSubscription(sourceData.id, false);
       throw new Error(
         `Payment attempt fails, please check your payment method`
       );
@@ -310,4 +312,5 @@ module.exports = {
 
   createSubscription,
   updateSubscription,
+  cancelSubscription,
 };

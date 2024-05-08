@@ -1,7 +1,7 @@
 const { apiResponse } = require("@utils");
 const Subscription = require("@models/subscription");
 const SearchOptions = require("@utils/searchOptions");
-const { DEFAULT_CURRENCY } = require("@constants/stripe");
+const { DEFAULT_CURRENCY, SUBSCRIPTION_STATUS } = require("@constants/stripe");
 const {
   getOrCreatePaymentUser,
   createPlan,
@@ -9,9 +9,10 @@ const {
   removePlan,
   createSubscription,
   updateSubscription,
+  cancelSubscription,
 } = require("@services/stripe");
 const { getUserCurrentSubscription } = require("@helpers/subscriptions");
-const UserSubscriptions = require("../models/userSubscription");
+const UserSubscriptions = require("@models/userSubscription");
 
 exports.create = async (req, res) => {
   try {
@@ -207,6 +208,41 @@ exports.purchase = async (req, res) => {
       200,
       "Purchased successfully"
     );
+  } catch (err) {
+    return apiResponse(req, res, {}, 500, err.message);
+  }
+};
+
+exports.cancel = async (req, res) => {
+  try {
+    const record = await UserSubscriptions.findOne({
+      _id: req.params.id,
+      user: req.user.id,
+    }).lean();
+
+    if (!record)
+      return apiResponse(req, res, {}, 404, "Subscription not found");
+
+    const { cancel_at_period_end = true } = req.body;
+
+    if (
+      record.sourceData?.status === SUBSCRIPTION_STATUS.canceled ||
+      (record.sourceData?.cancel_at_period_end && cancel_at_period_end)
+    )
+      return apiResponse(req, res, {}, 404, "Subscription already canceled");
+
+    const sourceData = await cancelSubscription(
+      record.sourceData.id,
+      cancel_at_period_end
+    );
+
+    const updated = await UserSubscriptions.findByIdAndUpdate(
+      req.params.id,
+      { sourceData },
+      { new: true }
+    );
+
+    return apiResponse(req, res, updated, 200, "Canceled successfully");
   } catch (err) {
     return apiResponse(req, res, {}, 500, err.message);
   }

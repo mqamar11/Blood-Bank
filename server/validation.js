@@ -92,6 +92,10 @@ const subscriptionSchema = {
   status: Joi.boolean().label("status").optional(),
 };
 
+const cancelSubscriptionSchema = {
+  cancel_at_period_end: Joi.boolean().label("cancel_at_period_end").optional(),
+};
+
 const updatePasswordSchema = {
   password: Joi.string().label("password").required(),
   new_password: Joi.string().label("new_password").required(),
@@ -112,6 +116,7 @@ module.exports = {
   tripsSchema: Joi.object(tripsSchema),
   addTripImageSchema: Joi.object(addTripImageSchema),
   subscriptionSchema: Joi.object(subscriptionSchema),
+  cancelSubscriptionSchema: Joi.object(cancelSubscriptionSchema),
   updatePasswordSchema: Joi.object(updatePasswordSchema),
   attachPaymentMethodSchema: Joi.object(attachPaymentMethodSchema),
 };

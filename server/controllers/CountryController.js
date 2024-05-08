@@ -36,7 +36,7 @@ exports.create = async (req, res) => {
 exports.getAll = async (req, res) => {
   try {
     const query = { name: { $regex: new RegExp(req.query.search ?? "", "i") } };
-    if (!req.user || !is_admin(req.user)) query.status = true;
+    if (!req.user || !is_admin(req.user)) query.status = { $in: [true, null] };
 
     const total = await Country.countDocuments(query);
     const records =
