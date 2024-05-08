@@ -334,6 +334,7 @@ module.exports = {
   updatePlan,
   removePlan,
 
+  retrieveSubscription,
   createSubscription,
   updateSubscription,
   cancelSubscription,

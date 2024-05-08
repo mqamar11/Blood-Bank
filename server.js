@@ -15,6 +15,7 @@ const logger = require("@base/logger");
 const config = require("@config");
 const db = require("@base/db");
 const middleware = require("@base/middleware");
+const stripeRoutes = require("@routes/stripeRoutes");
 
 require("@base/logger/fileLogger")();
 global.jwt = require("jsonwebtoken");
@@ -44,6 +45,8 @@ const promiseApp = async () => {
     app.use(middleware.userTokenMiddleware);
     app.use(middleware.compression);
     app.use("/public", middleware.staticFileMiddleware);
+
+    app.use(`/${config.apiPrefix}`, stripeRoutes);
 
     app.use(bodyParser.json({ limit: "20mb" }));
 
