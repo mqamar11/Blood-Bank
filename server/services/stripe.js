@@ -298,7 +298,6 @@ const updateSubscription = async (payload, paymentUser, prevSubscription) => {
 };
 
 module.exports = {
-  getPaymentUser,
   getOrCreatePaymentUser,
   updatePaymentUser,
 
