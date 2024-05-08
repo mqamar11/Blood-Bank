@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    trialAvailed: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

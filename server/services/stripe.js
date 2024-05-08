@@ -1,9 +1,15 @@
 const config = require("@config");
 const stripe = require("stripe")(config.stripe.apiKey);
-
 const User = require("@models/user");
 const Subscription = require("@models/subscription");
-const { getPlanObj } = require("@helpers/stripe");
+const UserSubscriptions = require("@models/userSubscription");
+const {
+  getPlanObj,
+  getTrialEndUnix,
+  getPreviousPhases,
+} = require("@helpers/stripe");
+const { SUBSCRIPTION_STATUS } = require("@constants/stripe");
+const { unixToDateTime } = require("@utils/datetime");
 
 // payment user services
 const getPaymentUser = async (customerId) => {
@@ -182,19 +188,112 @@ const removePlan = async (sourceData) => {
   }
 };
 
+// schedule
+const retrieveSchedule = async (id) => {
+  return await stripe.subscriptionSchedules.retrieve(id);
+};
+const createSchedule = async (from_subscription) => {
+  return await stripe.subscriptionSchedules.create({
+    from_subscription,
+  });
+};
+const releaseSchedule = async (id) => {
+  return await stripe.subscriptionSchedules.release(id);
+};
+
 // Subscriptions
+const retrieveSubscription = async (subscriptionId) => {
+  return await stripe.subscriptions.retrieve(subscriptionId);
+};
+const cancelSubscription = async (
+  subscription,
+  cancel_at_period_end = true
+) => {
+  // remove previous schedule
+  if (subscription.schedule) await releaseSchedule(subscription.schedule);
+
+  return cancel_at_period_end
+    ? await stripe.subscriptions.update(subscription.id, {
+        cancel_at_period_end,
+      })
+    : await stripe.subscriptions.del(subscription.id);
+};
 const createSubscription = async (payload, paymentUser) => {
   try {
-    return stripe.subscriptions.create({
-      customer: paymentUser.id,
+    const trial = paymentUser.trialAvailed ? 0 : payload.trial_period ?? 0;
+    const sourceData = await stripe.subscriptions.create({
+      customer: paymentUser.paymentSource.id,
       items: [{ price: payload.sourceData.priceId }],
-      trial_period_days: payload.trial_period ?? 0,
+      trial_period_days: trial,
+    });
+
+    // First payment error
+    if (sourceData.status === SUBSCRIPTION_STATUS.incomplete) {
+      await cancelSubscription(sourceData, false);
+      throw new Error(
+        `Payment attempt fails, please check your payment method`
+      );
+    }
+
+    if (trial > 0)
+      await User.findByIdAndUpdate(paymentUser._id, { trialAvailed: true });
+
+    return await UserSubscriptions.create({
+      user: paymentUser._id,
+      subscription: payload._id,
+      sourceData,
     });
   } catch (error) {
     throw new Error(error);
   }
 };
-const updateSubscription = async () => {};
+const updateSubscription = async (payload, paymentUser, prevSubscription) => {
+  try {
+    const prev = await retrieveSubscription(prevSubscription.sourceData.id);
+
+    // remove previous schedule
+    if (prev.schedule) await releaseSchedule(prev.schedule);
+
+    // create new schedule
+    const schedules = await createSchedule(prev.id);
+
+    let currentPhase = {
+      items: [{ price: payload.sourceData.priceId }],
+      start_date: prev.current_period_end,
+    };
+
+    const trial = paymentUser.trialAvailed ? 0 : payload.trial_period ?? 0;
+    if (trial > 0) {
+      currentPhase = {
+        ...currentPhase,
+        trial_end: getTrialEndUnix(
+          trial,
+          unixToDateTime(prev.current_period_end)
+        ),
+      };
+    }
+
+    const prevPhases = [...getPreviousPhases(schedules.phases)];
+    if (prev.status === SUBSCRIPTION_STATUS.trialing && prevPhases.length > 1)
+      prevPhases.pop();
+
+    const phases = [...prevPhases, { ...currentPhase }];
+
+    await stripe.subscriptionSchedules.update(schedules.id, { phases });
+    const sourceData = await retrieveSubscription(prev.id);
+
+    if (trial > 0)
+      await User.findByIdAndUpdate(paymentUser._id, { trialAvailed: true });
+
+    return await UserSubscriptions.findByIdAndUpdate(
+      prevSubscription.id,
+      { sourceData },
+      { new: true }
+    );
+  } catch (error) {
+    throw new Error(error);
+  }
+};
 
 module.exports = {
   getPaymentUser,

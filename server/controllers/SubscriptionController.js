@@ -11,6 +11,7 @@ const {
   updateSubscription,
 } = require("@services/stripe");
 const { getUserCurrentSubscription } = require("@helpers/subscriptions");
+const UserSubscriptions = require("../models/userSubscription");
 
 exports.create = async (req, res) => {
   try {
@@ -34,7 +35,7 @@ exports.create = async (req, res) => {
       currency: DEFAULT_CURRENCY,
       status,
     });
-
+    record.deleted = undefined;
     await createPlan(record);
 
     return apiResponse(
@@ -51,7 +52,10 @@ exports.create = async (req, res) => {
 
 exports.getAll = async (req, res) => {
   try {
-    const query = { name: { $regex: new RegExp(req.query.search ?? "", "i") } };
+    const query = {
+      deleted: { $ne: true },
+      name: { $regex: new RegExp(req.query.search ?? "", "i") },
+    };
     const total = await Subscription.countDocuments(query);
     const records =
       total > 0
@@ -72,9 +76,14 @@ exports.getAll = async (req, res) => {
 
 exports.getById = async (req, res) => {
   try {
-    const subscription = await Subscription.findById(req.params.id);
+    const subscription = await Subscription.findOne({
+      _id: req.params.id,
+      deleted: { $ne: true },
+    });
+
     if (!subscription)
       return apiResponse(req, res, {}, 404, "Subscription not found");
+
     return apiResponse(
       req,
       res,
@@ -99,8 +108,8 @@ exports.update = async (req, res) => {
       status,
     } = req.body;
 
-    const record = await Subscription.findByIdAndUpdate(
-      req.params.id,
+    const record = await Subscription.findOneAndUpdate(
+      { _id: req.params.id, deleted: { $ne: true } },
       {
         name,
         price,
@@ -135,15 +144,23 @@ exports.update = async (req, res) => {
 
 exports.delete = async (req, res) => {
   try {
-    const record = await Subscription.findById(req.params.id).select(
-      "+sourceData"
-    );
+    const record = await Subscription.findOne({
+      _id: req.params.id,
+      deleted: { $ne: true },
+    }).select("+sourceData");
 
     if (!record)
       return apiResponse(req, res, {}, 404, "Subscription not found");
 
     if (record.sourceData) await removePlan(record.sourceData);
-    await Subscription.findByIdAndDelete(req.params.id);
+
+    const purchasedCount = await UserSubscriptions.countDocuments({
+      subscription: record._id,
+    });
+
+    if (purchasedCount > 0)
+      await Subscription.findByIdAndUpdate(req.params.id, { deleted: true });
+    else await Subscription.findByIdAndDelete(req.params.id);
 
     return apiResponse(req, res, {}, 200, "Subscription deleted successfully");
   } catch (err) {
@@ -154,9 +171,13 @@ exports.delete = async (req, res) => {
 exports.purchase = async (req, res) => {
   try {
     // validate subscription
-    const record = await Subscription.findById(req.params.id)
+    const record = await Subscription.findOne({
+      _id: req.params.id,
+      deleted: { $ne: true },
+    })
       .select("+sourceData")
       .lean();
+
     if (!record || !record.sourceData)
       return apiResponse(req, res, {}, 404, "Subscription not found");
 
@@ -169,14 +190,23 @@ exports.purchase = async (req, res) => {
       return apiResponse(req, res, {}, 500, "No payment method found.");
     }
 
+    let purchasedRecord = null;
     const prev = await getUserCurrentSubscription(req.user._id);
     if (prev) {
-      if (prev.subscription == record.id)
+      if (prev.subscription.toString() == req.params.id)
         return apiResponse(req, res, {}, 500, "Already subscribed.");
-      await updateSubscription();
-    } else await createSubscription(record, req.user.paymentSource);
+      purchasedRecord = await updateSubscription(record, req.user, prev);
+    } else {
+      purchasedRecord = await createSubscription(record, req.user);
+    }
 
-    return apiResponse(req, res, {}, 200, "Purchased successfully");
+    return apiResponse(
+      req,
+      res,
+      purchasedRecord,
+      200,
+      "Purchased successfully"
+    );
   } catch (err) {
     return apiResponse(req, res, {}, 500, err.message);
   }

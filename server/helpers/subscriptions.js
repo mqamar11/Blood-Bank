@@ -5,7 +5,12 @@ exports.getUserCurrentSubscription = async (user) => {
   return await UserSubscriptions.findOne({
     user,
     "sourceData.status": {
-      $in: [SUBSCRIPTION_STATUS.trialing, SUBSCRIPTION_STATUS.active],
+      $in: [
+        SUBSCRIPTION_STATUS.trialing,
+        SUBSCRIPTION_STATUS.active,
+        SUBSCRIPTION_STATUS.past_due,
+        SUBSCRIPTION_STATUS.paused,
+      ],
     },
   });
 };

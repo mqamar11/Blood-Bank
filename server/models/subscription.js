@@ -40,6 +40,11 @@ const subscriptionSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    deleted: {
+      type: Boolean,
+      default: false,
+      select: false,
+    },
   },
   {
     timestamps: true,
