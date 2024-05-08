@@ -14,6 +14,7 @@ const {
   getOrCreatePaymentUser,
   addCustomerPaymentMethod,
 } = require("@services/stripe");
+const { isSubscribed } = require("@helpers/subscriptions");
 // const config = require("@config");
 
 exports.updateProfile = async (req, res) => {
@@ -72,6 +73,9 @@ exports.updateProfile = async (req, res) => {
     await updatePaymentUser(updated_user);
     delete updated_user.paymentSource;
 
+    if (updated_user.role === USER_ROLES.USER)
+      updated_user.subscription = await isSubscribed(updated_user._id);
+
     return apiResponse(
       req,
       res,
@@ -116,6 +120,9 @@ exports.getUserProfile = async (req, res) => {
   try {
     const user = req.user.toJSON();
     delete user.paymentSource;
+
+    if (user.role === USER_ROLES.USER)
+      user.subscription = await isSubscribed(user._id);
 
     // user.profile_pic_url = user.profile_picture
     //   ? `${config.profile.basePath}${user.profile_picture}`

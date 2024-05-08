@@ -6,6 +6,8 @@ const {
 } = require("@utils");
 const User = require("@models/user");
 const { getOrCreatePaymentUser } = require("@services/stripe");
+const { isSubscribed } = require("@helpers/subscriptions");
+const { USER_ROLES } = require("@constants");
 // const { validateImage } = require("@utils");
 // const config = require("@config");
 
@@ -61,6 +63,9 @@ exports.login = async (req, res) => {
     user.token = token;
     delete user.password;
 
+    if (user.role === USER_ROLES.USER)
+      user.subscription = await isSubscribed(user._id);
+
     return apiResponse(req, res, user, 200, "User logged in successfully");
   } catch (err) {
     return apiResponse(req, res, {}, 500, err.message);
@@ -106,7 +111,13 @@ exports.forgetPassword = async (req, res) => {
       ) {
         return apiResponse(req, res, {}, 451, result.response);
       } else {
-        return apiResponse(req, res, {otp_code}, 200, `Email sent to: ${email}` );
+        return apiResponse(
+          req,
+          res,
+          { otp_code },
+          200,
+          `Email sent to: ${email}`
+        );
       }
     } else {
       return apiResponse(req, res, {}, 500, "Something went wrong");

@@ -1,7 +1,7 @@
 const UserSubscriptions = require("@models/userSubscription");
 const { SUBSCRIPTION_STATUS } = require("@constants/stripe");
 
-exports.getUserCurrentSubscription = async (user) => {
+const getUserCurrentSubscription = async (user) => {
   return await UserSubscriptions.findOne({
     user,
     "sourceData.status": {
@@ -13,4 +13,13 @@ exports.getUserCurrentSubscription = async (user) => {
       ],
     },
   });
+};
+
+const isSubscribed = async (user) => {
+  return !!(await getUserCurrentSubscription(user));
+};
+
+module.exports = {
+  getUserCurrentSubscription,
+  isSubscribed,
 };
