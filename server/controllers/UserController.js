@@ -14,7 +14,7 @@ const {
   getOrCreatePaymentUser,
   addCustomerPaymentMethod,
 } = require("@services/stripe");
-const { isSubscribed } = require("@helpers/subscriptions");
+const { populateSubscriptionStatus } = require("@helpers/subscriptions");
 // const config = require("@config");
 
 exports.updateProfile = async (req, res) => {
@@ -58,7 +58,7 @@ exports.updateProfile = async (req, res) => {
       // profile_picture,
     };
 
-    const updated_user = await User.findByIdAndUpdate(
+    let updated_user = await User.findByIdAndUpdate(
       req.user._id,
       request_user,
       {
@@ -74,7 +74,7 @@ exports.updateProfile = async (req, res) => {
     delete updated_user.paymentSource;
 
     if (updated_user.role === USER_ROLES.USER)
-      updated_user.subscription = await isSubscribed(updated_user._id);
+      updated_user = await populateSubscriptionStatus(updated_user);
 
     return apiResponse(
       req,
@@ -118,11 +118,11 @@ exports.deleteProfilePicture = async (req, res) => {
 
 exports.getUserProfile = async (req, res) => {
   try {
-    const user = req.user.toJSON();
+    let user = req.user.toJSON();
     delete user.paymentSource;
 
     if (user.role === USER_ROLES.USER)
-      user.subscription = await isSubscribed(user._id);
+      user = await populateSubscriptionStatus(user);
 
     // user.profile_pic_url = user.profile_picture
     //   ? `${config.profile.basePath}${user.profile_picture}`
@@ -149,7 +149,7 @@ exports.attachPaymentMethod = async (req, res) => {
 
 // ADMIN
 
-exports.getAllUser = async (req, res) => {
+exports.getAll = async (req, res) => {
   try {
     const query = { role: USER_ROLES.USER };
 
@@ -159,9 +159,9 @@ exports.getAllUser = async (req, res) => {
         ? await User.find(query, null, new SearchOptions(req.query)).lean()
         : [];
 
-    // records.forEach((user) => {
-    //   user.profile_picture_url = `${config.profile.basePath}${user.profile_picture}`;
-    // });
+    for (let user of records) {
+      user = await populateSubscriptionStatus(user);
+    }
 
     return apiResponse(
       req,

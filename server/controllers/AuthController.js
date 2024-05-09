@@ -6,7 +6,7 @@ const {
 } = require("@utils");
 const User = require("@models/user");
 const { getOrCreatePaymentUser } = require("@services/stripe");
-const { isSubscribed } = require("@helpers/subscriptions");
+const { populateSubscriptionStatus } = require("@helpers/subscriptions");
 const { USER_ROLES } = require("@constants");
 // const { validateImage } = require("@utils");
 // const config = require("@config");
@@ -64,7 +64,7 @@ exports.login = async (req, res) => {
     delete user.password;
 
     if (user.role === USER_ROLES.USER)
-      user.subscription = await isSubscribed(user._id);
+      user = await populateSubscriptionStatus(user);
 
     return apiResponse(req, res, user, 200, "User logged in successfully");
   } catch (err) {

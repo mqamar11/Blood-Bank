@@ -1,11 +1,11 @@
-exports.DEFAULT_CURRENCY = "usd";
+const DEFAULT_CURRENCY = "usd";
 
-exports.DURATION = {
+const DURATION = {
   YEAR: "year",
   MONTH: "month",
 };
 
-exports.RECURRING_INTERVALS = {
+const RECURRING_INTERVALS = {
   month: {
     interval: "month",
     interval_count: 1,
@@ -28,7 +28,7 @@ exports.RECURRING_INTERVALS = {
   },
 };
 
-exports.SUBSCRIPTION_STATUS = {
+const SUBSCRIPTION_STATUS = {
   incomplete: "incomplete",
   incomplete_expired: "incomplete_expired",
   trialing: "trialing",
@@ -37,4 +37,19 @@ exports.SUBSCRIPTION_STATUS = {
   canceled: "canceled",
   unpaid: "unpaid",
   paused: "paused",
+};
+
+const SUBSCRIPTION_ACTIVE_STATUS = [
+  SUBSCRIPTION_STATUS.trialing,
+  SUBSCRIPTION_STATUS.active,
+  SUBSCRIPTION_STATUS.past_due,
+  SUBSCRIPTION_STATUS.paused,
+];
+
+module.exports = {
+  DEFAULT_CURRENCY,
+  DURATION,
+  RECURRING_INTERVALS,
+  SUBSCRIPTION_STATUS,
+  SUBSCRIPTION_ACTIVE_STATUS,
 };

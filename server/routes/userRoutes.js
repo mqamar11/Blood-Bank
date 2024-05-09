@@ -35,7 +35,7 @@ router
 
 // ADMIN ROUTES
 
-router.route("/admin/users").get(adminRequired, controller.getAllUser);
+router.route("/admin/users").get(adminRequired, controller.getAll);
 
 router
   .route("/admin/users/changeStatus/:id")
