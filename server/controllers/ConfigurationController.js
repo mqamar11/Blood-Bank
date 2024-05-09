@@ -39,7 +39,7 @@ exports.update = async (req, res) => {
       { new: true }
     );
 
-    return apiResponse(req, res, record, 200, "Created Successfully.");
+    return apiResponse(req, res, record, 200, "Updated Successfully.");
   } catch (err) {
     return apiResponse(req, res, {}, 500, err.message);
   }

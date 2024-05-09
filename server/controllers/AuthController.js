@@ -6,7 +6,7 @@ const {
 } = require("@utils");
 const User = require("@models/user");
 const { getOrCreatePaymentUser } = require("@services/stripe");
-const { populateSubscriptionStatus } = require("@helpers/subscriptions");
+const { resolveSessionAccess } = require("@helpers/users");
 const { USER_ROLES } = require("@constants");
 // const { validateImage } = require("@utils");
 // const config = require("@config");
@@ -30,7 +30,7 @@ exports.register = async (req, res) => {
     //   );
     // }
 
-    const record = await User.create({
+    let record = await User.create({
       name,
       email,
       password,
@@ -40,7 +40,15 @@ exports.register = async (req, res) => {
 
     await getOrCreatePaymentUser(record);
 
-    return apiResponse(req, res, {}, 200, "User registered successfully.");
+    const token = record.getJwtToken();
+    record = record.toJSON();
+    record.token = token;
+    delete record.password;
+    delete record.paymentSource;
+    if (record.role === USER_ROLES.USER)
+      record = await resolveSessionAccess(record);
+
+    return apiResponse(req, res, record, 200, "User registered successfully.");
   } catch (err) {
     return apiResponse(req, res, {}, 500, err.message);
   }
@@ -62,9 +70,7 @@ exports.login = async (req, res) => {
     user = JSON.parse(JSON.stringify(user));
     user.token = token;
     delete user.password;
-
-    if (user.role === USER_ROLES.USER)
-      user = await populateSubscriptionStatus(user);
+    if (user.role === USER_ROLES.USER) user = await resolveSessionAccess(user);
 
     return apiResponse(req, res, user, 200, "User logged in successfully");
   } catch (err) {
