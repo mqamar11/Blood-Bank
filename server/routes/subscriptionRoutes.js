@@ -20,6 +20,10 @@ router
 // ADMIN ROUTES
 
 router
+  .route("/admin/subscriptions/userHistory")
+  .get(adminRequired, controller.getUserHistory);
+
+router
   .route("/admin/subscriptions")
   .get(adminRequired, controller.getAll)
   .post(adminRequired, validate(subscriptionSchema), controller.create);

@@ -1,7 +1,11 @@
 const { apiResponse } = require("@utils");
 const Subscription = require("@models/subscription");
 const SearchOptions = require("@utils/searchOptions");
-const { DEFAULT_CURRENCY, SUBSCRIPTION_STATUS } = require("@constants/stripe");
+const {
+  DEFAULT_CURRENCY,
+  SUBSCRIPTION_STATUS,
+  SUBSCRIPTION_ACTIVE_STATUS,
+} = require("@constants/stripe");
 const {
   getOrCreatePaymentUser,
   createPlan,
@@ -243,6 +247,45 @@ exports.cancel = async (req, res) => {
     );
 
     return apiResponse(req, res, updated, 200, "Canceled successfully");
+  } catch (err) {
+    return apiResponse(req, res, {}, 500, err.message);
+  }
+};
+
+exports.getUserHistory = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return apiResponse(req, res, {}, 404, "userId is required");
+
+    const current = await getUserCurrentSubscription(userId);
+
+    const query = {
+      user: userId,
+      "sourceData.status": { $nin: SUBSCRIPTION_ACTIVE_STATUS },
+    };
+    const total = await UserSubscriptions.countDocuments(query);
+    const records =
+      total > 0
+        ? await UserSubscriptions.find(
+            query,
+            null,
+            new SearchOptions(req.query)
+          )
+        : [];
+
+    return apiResponse(
+      req,
+      res,
+      {
+        current,
+        history: {
+          total,
+          records,
+        },
+      },
+      200,
+      "Records retrieved Successfully."
+    );
   } catch (err) {
     return apiResponse(req, res, {}, 500, err.message);
   }
