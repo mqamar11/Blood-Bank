@@ -159,13 +159,13 @@ exports.delete = async (req, res) => {
 
     if (record.sourceData) await removePlan(record.sourceData);
 
-    const purchasedCount = await UserSubscriptions.countDocuments({
-      subscription: record._id,
-    });
+    // const purchasedCount = await UserSubscriptions.countDocuments({
+    //   subscription: record._id,
+    // });
 
-    if (purchasedCount > 0)
-      await Subscription.findByIdAndUpdate(req.params.id, { deleted: true });
-    else await Subscription.findByIdAndDelete(req.params.id);
+    // if (purchasedCount > 0)
+    await Subscription.findByIdAndUpdate(req.params.id, { deleted: true });
+    // else await Subscription.findByIdAndDelete(req.params.id);
 
     return apiResponse(req, res, {}, 200, "Subscription deleted successfully");
   } catch (err) {
