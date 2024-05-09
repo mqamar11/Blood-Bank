@@ -267,7 +267,6 @@ const createSubscription = async (payload, paymentUser) => {
     throw new Error(error);
   }
 };
-
 const updateSubscription = async (payload, paymentUser, prevSubscription) => {
   // ** Paused subscription updating flows not handled yet ** //
   try {
