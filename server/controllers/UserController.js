@@ -3,6 +3,7 @@ const {
   requestFilled,
   createHash,
   // uploadFile,
+  resolveQueryOptions,
 } = require("@utils");
 const User = require("@models/user");
 const sendEmail = require("@services/mail");
@@ -16,6 +17,7 @@ const {
 } = require("@services/stripe");
 const { resolveSessionAccess } = require("@helpers/users");
 const { populateSubscriptionStatus } = require("@helpers/subscriptions");
+const { SUBSCRIPTION_ACTIVE_STATUS } = require("@constants/stripe");
 // const config = require("@config");
 
 exports.updateProfile = async (req, res) => {
@@ -154,17 +156,53 @@ exports.attachPaymentMethod = async (req, res) => {
 
 exports.getAll = async (req, res) => {
   try {
+    const { sort, pageSize, skip } = resolveQueryOptions(req.query);
     const query = { role: USER_ROLES.USER };
 
-    const total = await User.countDocuments(query);
-    const records =
-      total > 0
-        ? await User.find(query, null, new SearchOptions(req.query)).lean()
-        : [];
+    const pipeline = [
+      {
+        $match: query,
+      },
+      { $sort: sort },
+    ];
 
-    for (let user of records) {
-      user = await populateSubscriptionStatus(user);
-    }
+    if (skip) pipeline.push({ $skip: skip });
+    if (pageSize) pipeline.push({ $limit: pageSize });
+
+    pipeline.push(
+      {
+        $lookup: {
+          from: "usersubscriptions",
+          localField: "_id",
+          foreignField: "user",
+          pipeline: [
+            {
+              $match: {
+                "sourceData.status": { $in: SUBSCRIPTION_ACTIVE_STATUS },
+              },
+            },
+            {
+              $project: {
+                "sourceData.status": 1,
+              },
+            },
+            { $limit: 1 },
+          ],
+          as: "subscriptions",
+        },
+      },
+      {
+        $set: {
+          subscription: {
+            $cond: [{ $gt: [{ $size: "$subscriptions" }, 0] }, true, false],
+          },
+        },
+      },
+      { $unset: ["subscriptions", "password", "paymentSource"] }
+    );
+
+    const total = await User.countDocuments(query);
+    const records = total > 0 ? await User.aggregate(pipeline) : [];
 
     return apiResponse(
       req,

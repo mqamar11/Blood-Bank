@@ -116,6 +116,21 @@ const appendZero = (value) => {
   return value < 10 ? `0${value}` : value;
 };
 
+const resolveQueryOptions = (payload) => {
+  const { limit, page, sortBy = "createdAt:desc" } = payload;
+
+  // sorting
+  const sort = {};
+  const sortStr = sortBy.split(":");
+  sort[sortStr[0]] = sortStr[1] === "desc" ? -1 : 1;
+
+  // pagination
+  const pageSize = limit ? parseInt(limit) : null;
+  const skip = page && pageSize ? (parseInt(page) - 1) * pageSize : null;
+
+  return { sort, pageSize, skip };
+};
+
 module.exports = {
   validateImage,
   apiResponse,
@@ -124,4 +139,5 @@ module.exports = {
   requestFilled,
   uploadFile,
   appendZero,
+  resolveQueryOptions,
 };
