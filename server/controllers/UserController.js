@@ -9,14 +9,12 @@ const User = require("@models/user");
 const sendEmail = require("@services/mail");
 // const { validateImage } = require("@utils");
 const { USER_ROLES } = require("@constants");
-const SearchOptions = require("@utils/searchOptions");
 const {
   updatePaymentUser,
   getOrCreatePaymentUser,
   addCustomerPaymentMethod,
 } = require("@services/stripe");
 const { resolveSessionAccess } = require("@helpers/users");
-const { populateSubscriptionStatus } = require("@helpers/subscriptions");
 const { SUBSCRIPTION_ACTIVE_STATUS } = require("@constants/stripe");
 // const config = require("@config");
 
