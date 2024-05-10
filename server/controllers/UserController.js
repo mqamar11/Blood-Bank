@@ -71,11 +71,14 @@ exports.updateProfile = async (req, res) => {
       .select("+paymentSource")
       .lean();
 
-    await updatePaymentUser(updated_user);
-    delete updated_user.paymentSource;
+    if (updated_user.role === USER_ROLES.USER) {
+      if (updated_user.paymentSource) {
+        await updatePaymentUser(updated_user);
+        delete updated_user.paymentSource;
+      } else await getOrCreatePaymentUser(updated_user);
 
-    if (updated_user.role === USER_ROLES.USER)
       updated_user = await resolveSessionAccess(updated_user);
+    }
 
     return apiResponse(
       req,
