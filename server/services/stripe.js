@@ -47,23 +47,19 @@ const detachPaymentMethod = async (paymentMethod) => {
 const addCustomerPaymentMethod = async (
   customerId,
   source,
-  isDefault = true
 ) => {
   try {
     // create payment method
-    const paymentMethod = await createPaymentMethod({
+    const paymentMethod = await stripe.paymentMethods.create({
       type: "card",
       "card[token]": source,
     });
 
     // attach to customer
-    await attachPaymentMethod(paymentMethod.id, customerId);
-    if (isDefault) {
+    await stripe.paymentMethods.attach(paymentMethod.id, { customer:customerId });
       await stripe.customers.update(customerId, {
         invoice_settings: { default_payment_method: paymentMethod.id },
       });
-    }
-
     return true;
   } catch (error) {
     throw new Error(error);
@@ -244,7 +240,6 @@ const createSubscription = async (payload, paymentUser) => {
     const sourceData = await stripe.subscriptions.create({
       customer: paymentUser.paymentSource.id,
       items: [{ price: payload.sourceData.priceId }],
-      trial_period_days: trial,
     });
 
     // First payment error

@@ -140,9 +140,18 @@ exports.getUserProfile = async (req, res) => {
 
 exports.attachPaymentMethod = async (req, res) => {
   try {
-    const { source } = req.body;
-    const paymentSource = await getOrCreatePaymentUser(req.user);
-    await addCustomerPaymentMethod(paymentSource.id, source);
+    const { source  } = req.body; // package id     source == cardId
+
+    // 1. get package from db where ACTIVE
+
+   // 2. jwt se userid => user ki stripe ID => 
+   const paymentSource = await getOrCreatePaymentUser(req.user);
+   await addCustomerPaymentMethod(paymentSource.id, source);
+
+    // 3. cREATE SUBSCRIPTION
+    await createSubscription(record, req.user);
+
+
 
     return apiResponse(req, res, {}, 200, "Attached Successfully");
   } catch (err) {
